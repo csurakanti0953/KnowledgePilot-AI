@@ -1,46 +1,19 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="66px" height="46px" viewBox="0 0 66 46" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <title>编组 10</title>
-    <defs>
-        <circle id="path-1" cx="14.5531915" cy="5.55319149" r="2.55319149"></circle>
-        <filter x="-607.1%" y="-567.9%" width="1314.2%" height="1314.2%" filterUnits="objectBoundingBox" id="filter-2">
-            <feOffset dx="0" dy="2" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
-            <feGaussianBlur stdDeviation="10" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
-            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.182692308 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
-        </filter>
-        <circle id="path-3" cx="24.5531915" cy="5.55319149" r="2.55319149"></circle>
-        <filter x="-607.1%" y="-567.9%" width="1314.2%" height="1314.2%" filterUnits="objectBoundingBox" id="filter-4">
-            <feOffset dx="0" dy="2" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
-            <feGaussianBlur stdDeviation="10" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
-            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.182692308 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
-        </filter>
-        <circle id="path-5" cx="4.55319149" cy="5.55319149" r="2.55319149"></circle>
-        <filter x="-607.1%" y="-567.9%" width="1314.2%" height="1314.2%" filterUnits="objectBoundingBox" id="filter-6">
-            <feOffset dx="0" dy="2" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
-            <feGaussianBlur stdDeviation="10" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
-            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.182692308 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
-        </filter>
-    </defs>
-    <g id="页面-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="编组-10" transform="translate(18, 15)">
-            <polygon id="矩形" fill="#EEFFE8" points="10 0 19 0 19 20 10 20"></polygon>
-            <polygon id="矩形" fill="#4ADB18" points="10 0 19 0 19 12.9177246 10 15.4794922"></polygon>
-            <polygon id="矩形" fill="#E9F3FF" points="20 0 29 0 29 20 20 20"></polygon>
-            <path d="M0,0 L9,0 L9,20 L0,20 L0,0 Z" id="矩形" fill="#FFF0F0"></path>
-            <polygon id="矩形" fill="#FF0B0B" points="0 0 9 0 9 15.8507314 -4.19664303e-14 18.3917055"></polygon>
-            <polygon id="矩形" fill="#0077FF" points="20 0 29 0 29 10.5 20 12.6755371"></polygon>
-            <g id="椭圆形">
-                <use fill="black" fill-opacity="1" filter="url(#filter-2)" xlink:href="#path-1"></use>
-                <use fill="#FFFFFF" fill-rule="evenodd" xlink:href="#path-1"></use>
-            </g>
-            <g id="椭圆形">
-                <use fill="black" fill-opacity="1" filter="url(#filter-4)" xlink:href="#path-3"></use>
-                <use fill="#FFFFFF" fill-rule="evenodd" xlink:href="#path-3"></use>
-            </g>
-            <g id="椭圆形">
-                <use fill="black" fill-opacity="1" filter="url(#filter-6)" xlink:href="#path-5"></use>
-                <use fill="#FFFFFF" fill-rule="evenodd" xlink:href="#path-5"></use>
-            </g>
-        </g>
-    </g>
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="KnowledgePilot AI logo">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#2563eb" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#60a5fa" />
+    </linearGradient>
+  </defs>
+  <rect x="24" y="24" width="208" height="208" rx="48" fill="url(#bg)" />
+  <rect x="74" y="66" width="108" height="124" rx="24" fill="#f8fafc" opacity="0.96" />
+  <path d="M94 92h70" stroke="#2563eb" stroke-width="10" stroke-linecap="round" />
+  <path d="M94 116h48" stroke="#38bdf8" stroke-width="10" stroke-linecap="round" />
+  <path d="M94 140h32" stroke="#60a5fa" stroke-width="10" stroke-linecap="round" />
+  <circle cx="176" cy="82" r="24" fill="url(#accent)" />
+  <path d="M168 82l8 8 14-16" fill="none" stroke="#f8fafc" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
 </svg>

@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { render, waitFor, act } from '@testing-library/react';
+import { render, waitFor, act, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Answer } from '../answer';
 
@@ -179,6 +179,21 @@ describe('Answer Component - Issue #69 Fix', () => {
     await waitFor(() => {
       expect(api.get).toHaveBeenCalledWith('/api/knowledge-base/1');
       expect(api.get).toHaveBeenCalledWith('/api/knowledge-base/1/documents/1');
+    });
+  });
+
+  it('copies the assistant response when the copy button is pressed', async () => {
+    const writeText = jest.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, {
+      clipboard: { writeText },
+    });
+
+    const { getByRole } = render(<Answer markdown="Here is a response" citations={[]} />);
+
+    fireEvent.click(getByRole('button', { name: /copy response/i }));
+
+    await waitFor(() => {
+      expect(writeText).toHaveBeenCalledWith('Here is a response');
     });
   });
 });

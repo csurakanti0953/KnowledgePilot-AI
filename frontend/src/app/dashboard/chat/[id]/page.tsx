@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useChat } from "ai/react";
-import { Send, User, Bot } from "lucide-react";
+import { Send, User, Sparkles, MessageSquareText } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { api, ApiError } from "@/lib/api";
 import { useToast } from "@/components/ui/use-toast";
@@ -56,6 +56,7 @@ export default function ChatPage({ params }: { params: { id: string } }) {
     handleSubmit,
     isLoading,
     setMessages,
+    setInput,
   } = useChat({
     api: `/api/chat/${params.id}/messages`,
     headers: {
@@ -152,6 +153,29 @@ export default function ChatPage({ params }: { params: { id: string } }) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const handleRegenerate = () => {
+    if (processedMessages.length === 0) return;
+
+    const lastUserMessage = [...processedMessages]
+      .reverse()
+      .find((message) => message.role === "user");
+
+    if (!lastUserMessage) return;
+
+    const filteredMessages = processedMessages.filter(
+      (message) => message.id !== lastUserMessage.id
+    );
+
+    setMessages(filteredMessages);
+    setInput(lastUserMessage.content);
+
+    const syntheticEvent = {
+      preventDefault: () => undefined,
+    } as React.FormEvent<HTMLFormElement>;
+
+    handleSubmit(syntheticEvent);
+  };
+
   const processMessageContent = (message: Message): Message => {
     if (message.role !== "assistant" || !message.content) return message;
 
@@ -243,75 +267,84 @@ export default function ChatPage({ params }: { params: { id: string } }) {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col h-[calc(100vh-5rem)] relative">
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-[80px]">
-          {processedMessages.map((message) =>
-            message.role === "assistant" ? (
-              <div
-                key={message.id}
-                className="flex justify-start items-start space-x-2"
-              >
-                <div className="w-8 h-8 flex items-center justify-center">
-                  <img
-                    src="/logo.png"
-                    className="h-8 w-8 rounded-full"
-                    alt="logo"
-                  />
+      <div className="flex h-[calc(100vh-5rem)] flex-col overflow-hidden rounded-[28px] border border-slate-200/80 bg-white shadow-sm">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+          <div className="mx-auto flex max-w-4xl flex-col gap-4">
+            {processedMessages.length === 0 && !isLoading ? (
+              <div className="flex min-h-[420px] flex-col items-center justify-center rounded-[28px] border border-dashed border-slate-300 bg-slate-50/70 px-8 py-12 text-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-sm">
+                  <MessageSquareText className="h-8 w-8 text-slate-700" />
                 </div>
-                <div className="max-w-[80%] rounded-lg px-4 py-2 text-accent-foreground">
-                  <Answer
-                    key={message.id}
-                    markdown={message.content}
-                    citations={message.citations}
-                  />
-                </div>
+                <h3 className="mt-6 text-xl font-semibold text-slate-900">Start a fresh conversation</h3>
+                <p className="mt-2 max-w-md text-sm leading-7 text-slate-500">
+                  Ask about your documents, policies, or knowledge base content and get grounded answers in a polished chat experience.
+                </p>
               </div>
             ) : (
-              <div
-                key={message.id}
-                className="flex justify-end items-start space-x-2"
-              >
-                <div className="max-w-[80%] rounded-lg px-4 py-2 bg-primary text-primary-foreground">
-                  {message.content}
-                </div>
-                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                  <User className="h-5 w-5 text-primary-foreground" />
-                </div>
-              </div>
-            )
-          )}
-          <div className="flex justify-start">
-            {isLoading &&
-              processedMessages[processedMessages.length - 1]?.role !=
-                "assistant" && (
-                <div className="max-w-[80%] rounded-lg px-4 py-2 text-accent-foreground">
-                  <div className="flex items-center space-x-1">
-                    <div className="w-2 h-2 rounded-full bg-primary animate-bounce" />
-                    <div className="w-2 h-2 rounded-full bg-primary animate-bounce [animation-delay:0.2s]" />
-                    <div className="w-2 h-2 rounded-full bg-primary animate-bounce [animation-delay:0.4s]" />
+              <>
+                {processedMessages.map((message) =>
+                  message.role === "assistant" ? (
+                    <div key={message.id} className="flex items-start gap-3">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50">
+                        <img src="/logo.svg" className="h-7 w-7 rounded-full" alt="logo" />
+                      </div>
+                      <div className="max-w-[85%] rounded-[24px] border border-slate-200 bg-slate-50/80 px-4 py-3 shadow-sm">
+                        <Answer
+                          key={message.id}
+                          markdown={message.content}
+                          citations={message.citations}
+                          onRegenerate={handleRegenerate}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div key={message.id} className="flex justify-end">
+                      <div className="flex max-w-[85%] items-start gap-3">
+                        <div className="rounded-[24px] bg-slate-900 px-4 py-3 text-sm leading-7 text-white shadow-sm">
+                          {message.content}
+                        </div>
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-white">
+                          <User className="h-4 w-4" />
+                        </div>
+                      </div>
+                    </div>
+                  )
+                )}
+                {isLoading && processedMessages[processedMessages.length - 1]?.role !== "assistant" ? (
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50">
+                      <Sparkles className="h-4 w-4 text-slate-600" />
+                    </div>
+                    <div className="rounded-[24px] border border-slate-200 bg-slate-50/80 px-4 py-3 shadow-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="h-2.5 w-2.5 rounded-full bg-slate-900 animate-bounce" />
+                        <div className="h-2.5 w-2.5 rounded-full bg-slate-900 animate-bounce [animation-delay:0.15s]" />
+                        <div className="h-2.5 w-2.5 rounded-full bg-slate-900 animate-bounce [animation-delay:0.3s]" />
+                      </div>
+                    </div>
                   </div>
-                </div>
-              )}
+                ) : null}
+              </>
+            )}
+            <div ref={messagesEndRef} />
           </div>
-          <div ref={messagesEndRef} />
         </div>
-        <form
-          onSubmit={handleSubmit}
-          className="border-t p-4 flex items-center space-x-4 bg-background absolute bottom-0 left-0 right-0"
-        >
-          <input
-            value={input}
-            onChange={handleInputChange}
-            placeholder="Type your message..."
-            className="flex-1 min-w-0 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          />
-          <button
-            type="submit"
-            disabled={isLoading || !input.trim()}
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-          >
-            <Send className="h-4 w-4" />
-          </button>
+        <form onSubmit={handleSubmit} className="border-t border-slate-200 bg-white p-4 sm:p-6">
+          <div className="mx-auto flex max-w-4xl items-center gap-3 rounded-[24px] border border-slate-200 bg-slate-50 px-3 py-3 shadow-sm">
+            <input
+              value={input}
+              onChange={handleInputChange}
+              placeholder="Ask about your documents..."
+              className="flex-1 min-w-0 border-0 bg-transparent px-2 py-2 text-sm text-slate-700 outline-none placeholder:text-slate-400"
+            />
+            <button
+              type="submit"
+              disabled={isLoading || !input.trim()}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Send className="h-4 w-4" />
+            </button>
+          </div>
         </form>
       </div>
     </DashboardLayout>

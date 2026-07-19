@@ -18,6 +18,9 @@ import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import { api } from "@/lib/api";
 import { FileIcon } from "react-file-icon";
+import { Check, Copy, RefreshCw } from "lucide-react";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
 
 // Debounce hook to prevent rapid state updates during streaming
 const useDebouncedValue = <T,>(value: T, delay: number): T => {
@@ -59,10 +62,13 @@ interface CitationInfo {
 export const Answer: FC<{
   markdown: string;
   citations?: Citation[];
-}> = ({ markdown, citations = [] }) => {
+  onRegenerate?: () => void;
+  onCopy?: (content: string) => void;
+}> = ({ markdown, citations = [], onRegenerate, onCopy }) => {
   const [citationInfoMap, setCitationInfoMap] = useState<
     Record<string, CitationInfo>
   >({});
+  const [copied, setCopied] = useState(false);
 
   // Debounce citations to prevent rapid API calls during streaming
   const debouncedCitations = useDebouncedValue(citations, 300);
@@ -113,6 +119,24 @@ export const Answer: FC<{
       fetchCitationInfo();
     }
   }, [debouncedCitations]);
+
+  const handleCopy = async () => {
+    const contentToCopy = markdown.replace(/<think>.*?<\/think>/gs, "").trim();
+    if (onCopy) {
+      onCopy(contentToCopy);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(contentToCopy);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    } catch (error) {
+      console.error("Failed to copy response:", error);
+    }
+  };
 
   const CitationLink = useMemo(
     () =>
@@ -208,16 +232,102 @@ export const Answer: FC<{
   }
 
   return (
-    <div className="prose prose-sm max-w-full">
-      <Markdown
-        remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeHighlight]}
-        components={{
-          a: CitationLink,
-        }}
-      >
-        {processedMarkdown}
-      </Markdown>
+    <div className="space-y-3">
+      <div className="flex items-center justify-end gap-2">
+        {onRegenerate ? (
+          <button
+            type="button"
+            onClick={onRegenerate}
+            className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+            aria-label="Regenerate response"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            Regenerate
+          </button>
+        ) : null}
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+          aria-label="Copy response"
+        >
+          {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+          {copied ? "Copied" : "Copy"}
+        </button>
+      </div>
+      <div className="prose prose-sm max-w-full prose-slate prose-headings:font-semibold prose-pre:overflow-x-auto prose-pre:rounded-xl prose-pre:border prose-pre:border-slate-200 prose-pre:bg-slate-950 prose-pre:p-4 prose-code:rounded prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:font-mono prose-code:text-slate-800 dark:prose-invert dark:prose-pre:bg-slate-900 dark:prose-code:bg-slate-800 dark:prose-code:text-slate-100">
+        <Markdown
+          remarkPlugins={[remarkGfm]}
+          rehypePlugins={[rehypeHighlight]}
+          components={{
+            a: CitationLink,
+            p: ({ children }) => <p className="mb-3 leading-7 text-slate-700">{children}</p>,
+            ul: ({ children }) => <ul className="mb-3 list-disc space-y-1 pl-5 text-slate-700">{children}</ul>,
+            ol: ({ children }) => <ol className="mb-3 list-decimal space-y-1 pl-5 text-slate-700">{children}</ol>,
+            code: ({ children, className, ...props }) => {
+              const match = /language-(\w+)/.exec(className || "");
+              const isInline = !match && typeof children === "string";
+              if (isInline) {
+                return (
+                  <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-sm text-slate-800" {...props}>
+                    {children}
+                  </code>
+                );
+              }
+
+              const language = match?.[1] || "text";
+              const content = String(children).replace(/\n$/, "");
+
+              return (
+                <div className="not-prose my-4 overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 shadow-sm">
+                  <div className="flex items-center justify-between border-b border-slate-800 bg-slate-900/80 px-3 py-2 text-[11px] uppercase tracking-[0.2em] text-slate-400">
+                    <span>{language}</span>
+                    <span>code</span>
+                  </div>
+                  <SyntaxHighlighter
+                    language={language}
+                    style={oneDark}
+                    showLineNumbers
+                    wrapLongLines
+                    customStyle={{
+                      margin: 0,
+                      padding: "1rem",
+                      background: "transparent",
+                      fontSize: "0.875rem",
+                    }}
+                  >
+                    {content}
+                  </SyntaxHighlighter>
+                </div>
+              );
+            },
+          }}
+        >
+          {processedMarkdown}
+        </Markdown>
+      </div>
+      {debouncedCitations.length > 0 ? (
+        <div className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
+          <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Sources</div>
+          <div className="flex flex-wrap gap-2">
+            {debouncedCitations.map((citation) => {
+              const citationInfo = citationInfoMap[
+                `${citation.metadata.kb_id}-${citation.metadata.document_id}`
+              ];
+              return (
+                <div key={citation.id} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 shadow-sm">
+                  <div className="font-medium text-slate-800">
+                    {citationInfo?.knowledge_base?.name || "Knowledge base"}
+                  </div>
+                  <div className="mt-0.5 text-[11px] text-slate-500">
+                    {citationInfo?.document?.file_name || "Document"}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };
